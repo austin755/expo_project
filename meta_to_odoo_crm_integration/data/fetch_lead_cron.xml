@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_meta_lead_fetch" model="ir.cron">
+        <field name="name">Fetch Meta Leads</field>
+        <field name="model_id" ref="model_meta_lead_fetcher"/>
+        <field name="state">code</field>
+        <field name="code">model.fetch_leads()</field>
+        <field name="interval_number">60</field>
+        <field name="interval_type">minutes</field>
+    </record>
+</odoo>

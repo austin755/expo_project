@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_meta_res_config_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.meta.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='general_settings']" position="after">
+                <app data-string="Meta API" string="Meta API" name="meta_configuration">
+                    <block title="Meta API">
+                        <div class="meta_configuration" data-string="Meta API Configuration" string="Meta API Configuration" data-key="meta_configuration">
+                            <group>
+                                <field name="meta_app_id"/>
+                                <field name="meta_app_secret"/>
+                                <field name="meta_access_token"/>
+                            </group>
+                        </div>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
