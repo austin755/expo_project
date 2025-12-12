@@ -1,10 +1,11 @@
 from odoo import models, fields, api
+from datetime import datetime, timedelta
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
     facebook_lead_id = fields.Char(string="Facebook Lead ID", help="Unique ID of the lead from Facebook")
-    lead_create_date = fields.Char(string='Lead Create Date')
+    lead_create_date = fields.Char(string='Lead Create Date',default=lambda self: datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
     phone_number = fields.Char(string="Whatsapp Number")
     first_name = fields.Char(string="First Name")
     country= fields.Char(string="Country")

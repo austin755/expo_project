@@ -7,10 +7,15 @@
         <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='lead_properties']" position="after">
-                <field name="lead_create_date"/>
-                <field name="job_title"/>
+                <field name="function"/>
                 <field name="form_name"/>
             </xpath>
+            <xpath expr="//field[@name='name']" position="before">
+                <field name="lead_create_date"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='create_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath> -->
         </field>
     </record>
     <record id="view_crm_lead_form_inherit" model="ir.ui.view">
@@ -21,11 +26,11 @@
             <xpath expr="//field[@name='lost_reason_id']" position="after">
                 <field name="first_name" invisible="1"/>
                 <field name="phone_number"/>
-                <field name="country"/>       
+                <!-- <field name="country"/>        -->
             </xpath>
             <xpath expr="//field[@name='tag_ids']" position="after">
-                <field name="job_title"/>
-                <field name="form_name"/>
+                <field name="function"/>
+                <field name="form_name" invisible='1'/>
                 <field name="facebook_lead_id" invisible='1'/>
                 <field name="lead_create_date" invisible='0'/>    
             </xpath>
