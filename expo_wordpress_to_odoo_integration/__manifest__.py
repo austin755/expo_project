@@ -3,7 +3,7 @@
     'name': 'Wordpress To Odoo Integration',
     'version': '1.0',
     'depends': ['base','crm'],
-    'author': 'NSPL',
+    'author': 'AccessAbilities Expo',
     'category': 'Sales',
     'description': 'Sales',
     'data':[

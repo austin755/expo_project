@@ -13,6 +13,7 @@ class WPLeadController(http.Controller):
     @http.route('/wordpress/webhook', type='json', auth='public', methods=['POST'], csrf=False)
     def wp_webhook(self):
         raw_data = request.httprequest.data
+        
         def log_debug(message, data=None):
             request.env['ir.logging'].sudo().create({
                 'name': 'WP Webhook Debug',
@@ -58,6 +59,7 @@ class WPLeadController(http.Controller):
         final_email = email_bs or email_cu or ""
         final_phone = phone_bs or phone_cu or ""
         final_country = country_bs
+        
         final_message = message_cu or data.get("your-message") or ""
 
         log_debug("Merged Final Data", {
@@ -76,12 +78,16 @@ class WPLeadController(http.Controller):
             source_website = request.env['utm.source'].sudo().create({
                 'name': 'Website'
             })
+        
+        if isinstance(final_country, list):
+            final_country = final_country[0] if final_country else False
 
         country_id = False
         if final_country:
             country = request.env["res.country"].sudo().search([
                 ("name", "ilike", final_country)
             ], limit=1)
+            
             country_id = country.id if country else False
 
         partner = request.env["res.partner"].sudo().search([

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
+    _order = 'lead_create_date desc'
 
     facebook_lead_id = fields.Char(string="Facebook Lead ID", help="Unique ID of the lead from Facebook")
     lead_create_date = fields.Char(string='Lead Create Date',default=lambda self: datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
