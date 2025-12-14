@@ -13,8 +13,6 @@ class WPLeadController(http.Controller):
     @http.route('/wordpress/webhook', type='json', auth='public', methods=['POST'], csrf=False)
     def wp_webhook(self):
         raw_data = request.httprequest.data
-
-        # Helper function to log debug messages in production
         def log_debug(message, data=None):
             request.env['ir.logging'].sudo().create({
                 'name': 'WP Webhook Debug',
@@ -27,9 +25,6 @@ class WPLeadController(http.Controller):
                 'line': '0',
             })
 
-        # -------------------------------
-        # 1️⃣ Parse JSON safely
-        # -------------------------------
         try:
             data = json.loads(raw_data.decode("utf-8"))
             log_debug("Data received from WordPress", data)
@@ -37,18 +32,13 @@ class WPLeadController(http.Controller):
             log_debug("Invalid JSON received", str(e))
             return {"status": "error", "message": "Invalid JSON received"}
 
-        # -------------------------------
-        # 2️⃣ Read fields from both forms
-        # -------------------------------
-
-        # Book a Stand fields
+        
         full_name = data.get("FullName")
         company_bs = data.get("CompanyName")
         country_bs = data.get("country-region")
         phone_bs = data.get("Phone")
         email_bs = data.get("Email")
 
-        # Contact Us form fields
         name_cu = data.get("your-name") or data.get("name") or data.get("fullname")
         email_cu = data.get("your-email") or data.get("email")
         phone_cu = data.get("your-phone") or data.get("phone")
@@ -63,9 +53,6 @@ class WPLeadController(http.Controller):
             "message_cu": message_cu
         })
 
-        # -------------------------------
-        # 3️⃣ Merge auto-detect form type
-        # -------------------------------
         final_name = full_name or name_cu or "Unknown"
         final_company = company_bs or company_cu or ""
         final_email = email_bs or email_cu or ""
@@ -81,10 +68,15 @@ class WPLeadController(http.Controller):
             "final_country": final_country,
             "final_message": final_message
         })
+        source_website = request.env['utm.source'].sudo().search(
+                [('name', '=', 'Website')],
+                limit=1
+            )
+        if not source_website:
+            source_website = request.env['utm.source'].sudo().create({
+                'name': 'Website'
+            })
 
-        # -------------------------------
-        # 4️⃣ Match country in Odoo
-        # -------------------------------
         country_id = False
         if final_country:
             country = request.env["res.country"].sudo().search([
@@ -92,9 +84,6 @@ class WPLeadController(http.Controller):
             ], limit=1)
             country_id = country.id if country else False
 
-        # -------------------------------
-        # 5️⃣ Partner Create / Find
-        # -------------------------------
         partner = request.env["res.partner"].sudo().search([
             ("name", "ilike", final_name)
         ], limit=1)
@@ -108,9 +97,6 @@ class WPLeadController(http.Controller):
                 "country_id": country_id,
             })
 
-        # -------------------------------
-        # 6️⃣ Create CRM Lead
-        # -------------------------------
         lead_vals = {
             "name": final_name or final_company or "Website Lead",
             "contact_name": final_name,
@@ -120,8 +106,7 @@ class WPLeadController(http.Controller):
             "phone": final_phone,
             "country_id": country_id,
             "description": f"Message:\n{final_message}".strip(),
-            "source_id": request.env.ref("crm.source_website", False).id
-                         if request.env.ref("crm.source_website", False) else False,
+            "source_id": source_website.id,
         }
 
         log_debug("Lead Values to Create", lead_vals)
@@ -129,157 +114,3 @@ class WPLeadController(http.Controller):
         request.env["crm.lead"].sudo().create(lead_vals)
 
         return {"status": "success"}
-
-
-    # @http.route('/wordpress/webhook', type='json', auth='public', methods=['POST'], csrf=False)
-    # def wp_webhook(self):
-    #     raw_data = request.httprequest.data
-
-        
-    #     try:
-    #         data = json.loads(raw_data.decode("utf-8"))
-    #         print("==============data",data)
-    #     except:
-    #         return {"status": "error", "message": "Invalid JSON received"}
-
-    #     # -------------------------------
-    #     # 1️⃣ READ FIELDS FROM BOTH FORMS
-    #     # -------------------------------
-
-    #     # Book a Stand fields
-    #     full_name = data.get("FullName")
-    #     company_bs = data.get("CompanyName")
-    #     country_bs = data.get("country-region")
-    #     phone_bs = data.get("Phone")
-    #     email_bs = data.get("Email")
-
-    #     # Contact Us Form fields
-    #     name_cu = data.get("your-name")
-    #     print("=======name_cu======",name_cu)
-    #     email_cu = data.get("your-email")
-    #     print("=============email_cu",email_cu)
-    #     phone_cu = data.get("your-phone")
-    #     print("=============email_cu",phone_cu)
-    #     company_cu = data.get("company")
-    #     message_cu = data.get("your-message")
-
-    #     # -------------------------------
-    #     # 2️⃣ MERGE AUTO-DETECT FORM TYPE
-    #     # -------------------------------
-    #     final_name = full_name or name_cu
-    #     print("======final_name====",final_name)
-    #     final_company = company_bs or company_cu
-    #     final_email = email_bs or email_cu
-    #     print("======final_email====",final_email)
-    #     final_phone = phone_bs or phone_cu
-    #     final_country = country_bs
-    #     final_message = message_cu or data.get("your-message") or ""
-
-    #     # -------------------------------
-    #     # 3️⃣ Match Country in Odoo
-    #     # -------------------------------
-    #     country_id = False
-    #     if final_country:
-    #         country = request.env["res.country"].sudo().search([
-    #             ("name", "ilike", final_country)
-    #         ], limit=1)
-    #         country_id = country.id if country else False
-
-    #     # -------------------------------
-    #     # 4️⃣ Partner Create / Find
-    #     # -------------------------------
-    #     partner = None
-    #     if final_name:
-    #         partner = request.env["res.partner"].sudo().search([
-    #             ("name", "ilike", final_name)
-    #         ], limit=1)
-
-    #     if not partner:
-    #         partner = request.env["res.partner"].sudo().create({
-    #             "name": final_name or "Unknown",
-    #             "company_name": final_company or "",
-    #             "email": final_email or "",
-    #             "phone": final_phone or "",
-    #             "country_id": country_id,
-    #         })
-
-    #     # -------------------------------
-    #     # 5️⃣ Create CRM Lead
-    #     # -------------------------------
-    #     lead_vals = {
-    #         "name": final_name or final_company or "Website Lead",
-    #         "contact_name": final_name,
-    #         "partner_name": final_company,
-    #         "partner_id": partner.id,
-    #         "email_from": final_email,
-    #         "phone": final_phone,
-    #         "country_id": country_id,
-    #         "description": f"Message:\n{final_message}".strip(),
-    #         "source_id": request.env.ref("crm.source_website", False).id if hasattr(request.env.ref("crm.source_website", False), 'id') else False,
-    #     }
-    #     print("==============lead",lead_vals)
-
-    #     request.env["crm.lead"].sudo().create(lead_vals)
-
-    #     return {"status": "success"}
-
-
-# class WPLeadController(http.Controller):
-
-#     @http.route('/wordpress/webhook', type='json', auth='public', methods=['POST'], csrf=False)
-#     def wp_webhook(self):
-#         raw_data = request.httprequest.data
-#         try:
-#             data = json.loads(raw_data.decode('utf-8')) 
-#         except:
-#             return {"status": "error", "message": "Invalid JSON"}
-
-#         # Read CF7 fields
-#         full_name = data.get('FullName')
-#         name = data.get('your-name')
-#         company = data.get('CompanyName')
-#         country = data.get('country-region')
-#         phone = data.get('Phone') or data.get('your-phone')
-#         email = data.get('Email')  or data.get('your-email')
-#         message = data.get('your-message')
-    
-#         # Find country in Odoo
-#         country_id = False
-#         if country:
-#             country_rec = request.env['res.country'].sudo().search(
-#                 [('name', 'ilike', country)], limit=1
-#             )
-#             country_id = country_rec.id if country_rec else False
-
-#         search_name = full_name or name
-
-#         partner = False
-#         if search_name:
-#             partner = request.env['res.partner'].sudo().search(
-#                 [('name', 'ilike', search_name)], limit=1
-#             )
-#             if not partner:
-#                 partner = request.env['res.partner'].sudo().create({
-#                     'name': search_name,
-#                     'company_name': company or '',
-#                     'email': email or '',
-#                     'phone': phone or '',
-#                     'country_id': country_id or False,
-#                     'is_company': False,
-#                 })
-                
-#         final_description = f"Message:\n{message or ''}"
-
-#         # Create CRM Lead
-#         crm=request.env['crm.lead'].sudo().create({
-#             'name': search_name or company,
-#             'contact_name': search_name,
-#             'partner_name': company,
-#             'partner_id': partner.id if partner else False,
-#             'email_from': email,
-#             'phone': phone,
-#             'description': final_description.strip(),
-#             'country_id': country_id,
-#         })
-
-#         return {"status": "success"}
