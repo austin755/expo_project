@@ -70,14 +70,25 @@ class WPLeadController(http.Controller):
             "final_country": final_country,
             "final_message": final_message
         })
-        source_website = request.env['utm.source'].sudo().search(
-                [('name', '=', 'Website')],
-                limit=1
-            )
-        if not source_website:
-            source_website = request.env['utm.source'].sudo().create({
-                'name': 'Website'
-            })
+        
+        if data.get("country-region"):
+            source_website = request.env['utm.source'].sudo().search(
+                    [('name', '=', 'Website - Book A Stand')],
+                    limit=1
+                )
+            if not source_website:
+                source_website = request.env['utm.source'].sudo().create({
+                    'name': 'Website - Book A Stand'
+                })
+        else:
+            source_website = request.env['utm.source'].sudo().search(
+                    [('name', '=', 'Website - Contact Us')],
+                    limit=1
+                )
+            if not source_website:
+                source_website = request.env['utm.source'].sudo().create({
+                    'name': 'Website - Contact Us'
+                })
         
         if isinstance(final_country, list):
             final_country = final_country[0] if final_country else False

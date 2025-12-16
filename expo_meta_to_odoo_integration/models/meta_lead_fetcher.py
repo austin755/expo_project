@@ -78,7 +78,7 @@ class MetaLeadFetcher(models.Model):
                         try:
                             dt = datetime.strptime(fb_time, "%Y-%m-%dT%H:%M:%S%z")
                             dt = dt.replace(tzinfo=None)
-                            created_date_clean = dt.strftime("%d/%m/%Y %H:%M:%S")
+                            created_date_clean = dt
                         except Exception as e:
                             _logger.exception("Error parsing Facebook date: %s", fb_time)
                             created_date_clean = fb_time
