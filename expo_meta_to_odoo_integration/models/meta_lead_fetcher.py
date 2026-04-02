@@ -82,23 +82,43 @@ class MetaLeadFetcher(models.Model):
                         except Exception as e:
                             _logger.exception("Error parsing Facebook date: %s", fb_time)
                             created_date_clean = fb_time
-                    country_raw = lead_vals.get("country") or lead_vals.get("country_name") or lead_vals.get("country_code")
+                    # country_raw = lead_vals.get("country") or lead_vals.get("country_name") or lead_vals.get("country_code")
     
+                    # country_id = False
+                    # if country_raw:
+                    #     country_search_domain = [
+                    #         "|",
+                    #         ("name", "=ilike", country_raw),
+                    #         ("code", "=ilike", country_raw)
+                    #     ]
+                    #     country_rec = self.env['res.country'].sudo().search(country_search_domain, limit=1)
+                    #     if not country_rec:
+                    #         try:
+                    #             country_rec = self.env['res.country'].sudo().create({"name": country_raw})
+                    #             _logger.info("Created res.country: %s", country_raw)
+                    #         except Exception:
+                    #             _logger.exception("Failed to create country %s", country_raw)
+                    #             country_rec = False
+                    #     if country_rec:
+                    #         country_id = country_rec.id
+
+                    country_raw = lead_vals.get("country") or lead_vals.get("country_name") or lead_vals.get("country_code")
+
                     country_id = False
+                    country_rec = False
+
                     if country_raw:
-                        country_search_domain = [
-                            "|",
-                            ("name", "=ilike", country_raw),
-                            ("code", "=ilike", country_raw)
-                        ]
-                        country_rec = self.env['res.country'].sudo().search(country_search_domain, limit=1)
+                        # domain = ["|", ("name", "=ilike", country_raw), ("code", "=ilike", country_raw)]
+                        domain = ["|", ("name", "ilike", country_raw), ("code", "=", country_raw.upper())]
+                        
+                        country_rec = self.env['res.country'].sudo().search(domain, limit=1)
+
                         if not country_rec:
                             try:
                                 country_rec = self.env['res.country'].sudo().create({"name": country_raw})
-                                _logger.info("Created res.country: %s", country_raw)
                             except Exception:
                                 _logger.exception("Failed to create country %s", country_raw)
-                                country_rec = False
+
                         if country_rec:
                             country_id = country_rec.id
 
@@ -150,7 +170,7 @@ class MetaLeadFetcher(models.Model):
                         "form_name": form_name,
                         "first_name": lead_vals.get("first_name"),
                         "phone_number": lead_vals.get("phone_number"),
-                        "country_id": country_rec.id,
+                        "country_id": country_rec.id if country_rec else '',
                         "function": lead_vals.get("job_title"),
                         "email_from": lead_vals.get("email"),
                         "phone": lead_vals.get("phone_number"),
