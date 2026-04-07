@@ -90,8 +90,10 @@ class MetaLeadFetcher(models.Model):
                     continue
 
                 leads = leads_resp.json().get('data', [])
+                print("===============leads",leads)
 
                 for lead in leads:
+                    print("=========lead",lead)
                     if time() - start_time > max_duration:
                         return
 
@@ -115,7 +117,7 @@ class MetaLeadFetcher(models.Model):
                         or lead_vals.get('first_name')
                     )
 
-                    email = lead_vals.get("email")
+                    email = lead_vals.get("email") or lead_vals.get("work_email")
                     phone = lead_vals.get("phone_number")
 
                     # -----------------------------
