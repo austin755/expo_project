@@ -119,6 +119,7 @@ class MetaLeadFetcher(models.Model):
 
                     email = lead_vals.get("email") or lead_vals.get("work_email")
                     phone = lead_vals.get("phone_number")
+                    partner_name = lead_vals.get("company_name")
 
                     # -----------------------------
                     # Date conversion
@@ -206,6 +207,7 @@ class MetaLeadFetcher(models.Model):
                         "form_name": form_name,
                         "email_from": email,
                         "phone": phone,
+                        "partner_name":partner_name,
                         "country_id": country_rec.id if country_rec else False,
                         "partner_id": partner.id if partner else False,
                         "source_id": source.id,
